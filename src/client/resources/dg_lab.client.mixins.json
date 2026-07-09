@@ -9,7 +9,8 @@
   ],
   "mixins": [
     "LivingEntityAccessor",
-    "tick"
+    "tick",
+    "SoundSystemMixin"
   ],
   "injectors": {
     "defaultRequire": 1
