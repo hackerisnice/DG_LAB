@@ -36,22 +36,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
         StrengthConfig StrengthConfig = Dg_labClient.strengthConfig;
         if (server != null && server.getConnected()) {
             float damage = Dg_labHealth - health;
-
-
-            if (damage > 0.0F) {
-                if (!Dg_labClient.twoPlayerMode) {
-                    server.setDelayTime(StrengthConfig.getADelayTime(), StrengthConfig.getBDelayTime());
-                    if (StrengthConfig.getADamageStrength() > 0)
-                        server.sendStrengthToClient(Math.max(1, ((int) (damage * StrengthConfig.getADamageStrength()))), 1, 1);
-                    if (StrengthConfig.getBDamageStrength() > 0)
-                        server.sendStrengthToClient(Math.max(1, ((int) (damage * StrengthConfig.getBDamageStrength()))), 1, 2);
-                }
-                else {
-                    server.setADelayTime(StrengthConfig.getADelayTime());
-                    if (StrengthConfig.getADamageStrength() > 0)
-                        server.sendStrengthToClient(Math.max(1, ((int) (damage * StrengthConfig.getADamageStrength()))), 1, 1);
-                }
-            }
             if (health <= 0) {
                 DGStrength dgStrength = server.getStrength();
                 if (!Dg_labClient.twoPlayerMode) {
