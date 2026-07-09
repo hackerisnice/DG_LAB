@@ -52,6 +52,7 @@ public class Dg_labClient implements ClientModInitializer {
         webSocketServer = new webSocketServer(new InetSocketAddress(modConfig.getServerPort()));
 
         strengthConfig = online.kbpf.dg_lab.client.Config.StrengthConfig.loadJson();
+        online.kbpf.dg_lab.client.Config.SoundNoiseConfig.loadOrGenerate();
 
         DGWaveformTool.updateDuration();
 
@@ -65,6 +66,7 @@ public class Dg_labClient implements ClientModInitializer {
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            online.kbpf.dg_lab.client.entity.NoiseManager.tick();
             while (keyBinding.wasPressed()) {
 
                 client.setScreen(configScreen);
@@ -126,6 +128,28 @@ public class Dg_labClient implements ClientModInitializer {
                 OrderedText orderedText = strengthText.asOrderedText();
                 drawContext.drawTextWithShadow(client.textRenderer, orderedText, x, y, 0xFF0000);
             }
+        }
+        if (client.player != null && client.world != null) {
+            int screenWidth = client.getWindow().getScaledWidth();
+            int barWidth = 100;
+            int barHeight = 10;
+            int xPos = screenWidth - barWidth - 10; // 右上角边距10
+            int yPos = 10;
+            
+            // 计算进度百分比
+            float noiseRatio = Math.min(1.0f, online.kbpf.dg_lab.client.entity.NoiseManager.currentNoise / online.kbpf.dg_lab.client.entity.NoiseManager.MAX_NOISE);
+            int currentBarWidth = (int)(barWidth * noiseRatio);
+            
+            // 绘制背景 (半透明黑)
+            drawContext.fill(xPos, yPos, xPos + barWidth, yPos + barHeight, 0x80000000);
+            
+            // 绘制前景进度条 (噪声接近200时渐变为红色，否则为绿色)
+            int barColor = noiseRatio > 0.8f ? 0xFFFF3333 : 0xFF33FF33;
+            drawContext.fill(xPos, yPos, xPos + currentBarWidth, yPos + barHeight, barColor);
+            
+            // 绘制文字标尺
+            String text = "Noise: " + (int)online.kbpf.dg_lab.client.entity.NoiseManager.currentNoise + "/200";
+            drawContext.drawTextWithShadow(client.textRenderer, text, xPos, yPos + barHeight + 2, 0xFFFFFF);
         }
     }
 
