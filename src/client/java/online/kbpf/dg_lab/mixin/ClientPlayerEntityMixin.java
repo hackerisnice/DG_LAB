@@ -38,6 +38,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
             float damage = Dg_labHealth - health;
             if (health <= 0) {
                 DGStrength dgStrength = server.getStrength();
+                online.kbpf.dg_lab.client.entity.NoiseManager.currentNoise = 0.0f;
+                online.kbpf.dg_lab.client.entity.NoiseManager.ticksSinceLastNoise = 0; // 可选：顺便重置一下降噪倒计时
                 if (!Dg_labClient.twoPlayerMode) {
                     server.setDelayTime(StrengthConfig.getADeathDelay(), StrengthConfig.getBDeathDelay());
                     server.sendStrengthToClient((Math.min(dgStrength.getAStrength() + StrengthConfig.getADeathStrength(), dgStrength.getAMaxStrength())), 2, 1);
