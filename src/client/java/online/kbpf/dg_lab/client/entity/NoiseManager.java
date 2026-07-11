@@ -12,12 +12,19 @@ public class NoiseManager {
     public static final float MAX_NOISE = 200.0f;
 
     public static void onSoundPlayed(String soundId) {
+        // 【核心修改1】：点名拉黑死亡音效！一旦检测到死亡音效，强制清空噪声条，并立刻终止计算。
+        if (soundId.equals("minecraft:entity.player.death")) {
+            currentNoise = 0.0f;
+            ticksSinceLastNoise = 0;
+            return;
+        }
+
         MinecraftClient client = MinecraftClient.getInstance();
         
-        // 【核心修改 1】：如果玩家还没加载，或者玩家是死亡状态（躺在地上还没点复活），直接忽略所有声音并锁死在0！
+        // 【核心修改2】：退出游戏、尚未加载、或者已经死亡（躺地状态），锁死为0。
         if (client.player == null || client.player.isDead() || client.player.getHealth() <= 0) {
             currentNoise = 0.0f;
-            return; // 提前结束，不增加任何分贝
+            return; 
         }
 
         int noiseValue = SoundNoiseConfig.getNoiseValue(soundId);
@@ -27,7 +34,6 @@ public class NoiseManager {
             
             if (currentNoise >= MAX_NOISE) {
                 triggerShock();
-                currentNoise = 0.0f; 
             }
         }
     }
@@ -35,7 +41,6 @@ public class NoiseManager {
     public static void tick() {
         MinecraftClient client = MinecraftClient.getInstance();
         
-        // 【核心修改 2】：哪怕没有新声音，在每Tick的循环里，只要是死亡状态，也一直保持清零
         if (client.player == null || client.player.isDead() || client.player.getHealth() <= 0) {
             currentNoise = 0.0f;
             ticksSinceLastNoise = 0;
@@ -43,8 +48,8 @@ public class NoiseManager {
         }
 
         ticksSinceLastNoise++;
-        // 保持你之前要的 5秒 (100 tick) 后开始下降
-        if (ticksSinceLastNoise > 100 && currentNoise > 0) {
+        // 50 tick = 2.5秒无声音开始慢慢回落
+        if (ticksSinceLastNoise > 50 && currentNoise > 0) {
             currentNoise = Math.max(0, currentNoise - 0.5f); 
         }
     }
