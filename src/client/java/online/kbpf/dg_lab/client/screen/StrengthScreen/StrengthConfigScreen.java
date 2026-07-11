@@ -13,10 +13,8 @@ import net.minecraft.text.Text;
 
 import static online.kbpf.dg_lab.client.screen.ConfigScreen.*;
 
-
 @Environment(EnvType.CLIENT)
 public class StrengthConfigScreen extends Screen {
-
 
     private SliderWidget ADamageStrength, BDamageStrength;
     private ButtonWidget DamageStrength;
@@ -28,16 +26,12 @@ public class StrengthConfigScreen extends Screen {
     private ButtonWidget DownValue;
     private SliderWidget ADeathStrength, BDeathStrength;
     private ButtonWidget DeathStrength;
-    private SliderWidget ADeathDelay, BDeathDelay;
-    private ButtonWidget DeathDelay;
     private SliderWidget AMin, BMin;
     private ButtonWidget Min;
 
     public StrengthConfigScreen() {
-        // 此参数为屏幕的标题，进入屏幕中，复述功能会复述。
-        super(Text.literal("强度配置界面"));
+        super(Text.literal("噪声惩罚强度配置"));
     }
-
 
     @Override
     public void close() {
@@ -47,210 +41,176 @@ public class StrengthConfigScreen extends Screen {
 
     @Override
     protected void init() {
-
         StrengthConfig strengthConfig = Dg_labClient.strengthConfig;
-        ADamageStrength = new SliderWidget(width / 2 - 205, 20, 100, ButtonHeight, Text.literal("A每伤害强度" + String.format("%.2f", strengthConfig.getADamageStrength())), strengthConfig.getADamageStrength() / 20) {
-            @Override
-            protected void updateMessage() {
-            }
 
+        int row1 = 20;
+        int row2 = ButtonHeight + ButtonDistance + 20;
+        int row3 = 2 * (ButtonHeight + ButtonDistance) + 20;
+
+        // ================= 第一行 左侧：基础惩罚强度 (原 DamageStrength) =================
+        ADamageStrength = new SliderWidget(width / 2 - 205, row1, 100, ButtonHeight, Text.literal("A基础惩罚 " + String.format("%.2f", strengthConfig.getADamageStrength())), strengthConfig.getADamageStrength() / 20) {
+            @Override
+            protected void updateMessage() {}
             @Override
             protected void applyValue() {
-                float ADamageStrength = (float) (this.value * 20);
-                strengthConfig.setADamageStrength(ADamageStrength);
-                this.setMessage(Text.literal("A每伤害强度" + String.format("%.2f", strengthConfig.getADamageStrength())));
+                float val = (float) (this.value * 20);
+                strengthConfig.setADamageStrength(val);
+                this.setMessage(Text.literal("A基础惩罚 " + String.format("%.2f", strengthConfig.getADamageStrength())));
             }
         };
 
-        BDamageStrength = new SliderWidget(width / 2 - 105, 20, 100, ButtonHeight, Text.literal("B每伤害强度" + String.format("%.2f", strengthConfig.getBDamageStrength())), strengthConfig.getBDamageStrength() / 20) {
+        BDamageStrength = new SliderWidget(width / 2 - 105, row1, 100, ButtonHeight, Text.literal("B基础惩罚 " + String.format("%.2f", strengthConfig.getBDamageStrength())), strengthConfig.getBDamageStrength() / 20) {
             @Override
-            protected void updateMessage() {
-            }
-
+            protected void updateMessage() {}
             @Override
             protected void applyValue() {
-                float BDamageStrength = (float) (this.value * 20);
-                strengthConfig.setBDamageStrength(BDamageStrength);
-                this.setMessage(Text.literal("B每伤害强度" + String.format("%.2f", strengthConfig.getBDamageStrength())));
+                float val = (float) (this.value * 20);
+                strengthConfig.setBDamageStrength(val);
+                this.setMessage(Text.literal("B基础惩罚 " + String.format("%.2f", strengthConfig.getBDamageStrength())));
             }
         };
 
-        DamageStrength = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 - 215, 20, 10, ButtonHeight).tooltip(Tooltip.of(Text.literal("每受到半颗心伤害增加的强度\n受伤时增加强度若小于1则增加1\n大于一的强度数值9舍0入\n若为0则不增加"))).build();
+        DamageStrength = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 - 215, row1, 10, ButtonHeight)
+                .tooltip(Tooltip.of(Text.literal("【基础惩罚强度】\n当噪声达到200分贝时触发的最基础电击强度。"))).build();
 
-        ADelayTime = new SliderWidget(width / 2 + 5, 20, 100, ButtonHeight, Text.literal("A强度下降等待" + strengthConfig.getADelayTime() * 50 + "ms"), (double) strengthConfig.getADelayTime() / 120) {
+
+        // ================= 第一行 右侧：超限放大倍率 (原 DeathStrength) =================
+        ADeathStrength = new SliderWidget(width / 2 + 5, row1, 100, ButtonHeight, Text.literal("A超限倍率 " + strengthConfig.getADeathStrength()), (double) strengthConfig.getADeathStrength() / 200) {
             @Override
-            protected void updateMessage() {
-            }
-
-            @Override
-            protected void applyValue() {
-                int tmp = (int) (this.value * 120);
-                this.setMessage(Text.literal("A强度下降等待" + tmp * 50 + "ms"));
-                strengthConfig.setADelayTime(tmp);
-            }
-        };
-
-        BDelayTime = new SliderWidget(width / 2 + 105, 20, 100, ButtonHeight, Text.literal("B强度下降等待" + strengthConfig.getBDelayTime() * 50 + "ms"), (double) strengthConfig.getBDelayTime() / 120) {
-            @Override
-            protected void updateMessage() {
-            }
-
-            @Override
-            protected void applyValue() {
-                int tmp = (int) (this.value * 120);
-                this.setMessage(Text.literal("B强度下降等待" + tmp * 50 + "ms"));
-                strengthConfig.setBDelayTime(tmp);
-            }
-        };
-
-        DelayTime = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 + 205, 20, 10, ButtonHeight).tooltip(Tooltip.of(Text.literal("受伤等待一段时间后强度开始下降\n再次受伤将会覆盖当前的等待时间\n非叠加,是覆盖"))).build();
-
-        ADownTime = new SliderWidget(width / 2 + 5, ButtonHeight + ButtonDistance + 20, 100, ButtonHeight, Text.literal("A强度下降间隔" + strengthConfig.getADownTime() * 50 + "ms"), (double) strengthConfig.getADownTime() / 120) {
-            @Override
-            protected void updateMessage() {
-            }
-
-            @Override
-            protected void applyValue() {
-                int tmp = (int) (this.value * 120);
-                if (tmp == 0) tmp = 1;
-                this.setMessage(Text.literal("A强度下降间隔" + tmp * 50 + "ms"));
-                strengthConfig.setADownTime(tmp);
-            }
-        };
-
-        BDownTime = new SliderWidget(width / 2 + 105, ButtonHeight + ButtonDistance + 20, 100, ButtonHeight, Text.literal("B强度下降间隔" + strengthConfig.getBDownTime() * 50 + "ms"), (double) strengthConfig.getBDownTime() / 120) {
-            @Override
-            protected void updateMessage() {
-            }
-
-            @Override
-            protected void applyValue() {
-                int tmp = (int) (this.value * 120);
-                if (tmp == 0) tmp = 1;
-                this.setMessage(Text.literal("B强度下降间隔" + tmp * 50 + "ms"));
-                strengthConfig.setBDownTime(tmp);
-            }
-        };
-
-        DownTime = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 + 205, ButtonHeight + ButtonDistance + 20, 10, ButtonHeight).tooltip(Tooltip.of(Text.literal("强度下降的时候每过此时间强度下降一次"))).build();
-
-        ADownValue = new SliderWidget(width / 2 - 205, ButtonHeight + ButtonDistance + 20, 100, ButtonHeight, Text.literal("A强度下降数值" + strengthConfig.getADownValue()), (double) strengthConfig.getADownValue() / 20) {
-            @Override
-            protected void updateMessage() {
-            }
-
-            @Override
-            protected void applyValue() {
-                int tmp = (int) (this.value * 20);
-                this.setMessage(Text.literal("A强度下降数值" + tmp));
-                strengthConfig.setADownValue(tmp);
-            }
-        };
-
-        BDownValue = new SliderWidget(width / 2 - 105, ButtonHeight + ButtonDistance + 20, 100, ButtonHeight, Text.literal("A强度下降数值" + strengthConfig.getBDownValue()), (double) strengthConfig.getBDownValue() / 20) {
-            @Override
-            protected void updateMessage() {
-            }
-
-            @Override
-            protected void applyValue() {
-                int tmp = (int) (this.value * 20);
-                this.setMessage(Text.literal("B强度下降数值" + tmp));
-                strengthConfig.setBDownValue(tmp);
-            }
-        };
-
-        DownValue = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 - 215, ButtonHeight + ButtonDistance + 20, 10, ButtonHeight).tooltip(Tooltip.of(Text.literal("每次强度下降的时候下降的数值"))).build();
-
-        ADeathStrength = new SliderWidget(width / 2 - 205, 2 * (ButtonHeight + ButtonDistance) + 20, 100, ButtonHeight, Text.literal("A死亡增加强度" + strengthConfig.getADeathStrength()), (double) strengthConfig.getADeathStrength() / 200) {
-            @Override
-            protected void updateMessage() {
-            }
-
+            protected void updateMessage() {}
             @Override
             protected void applyValue() {
                 int tmp = (int) (this.value * 200);
                 strengthConfig.setADeathStrength(tmp);
-                this.setMessage(Text.literal("A死亡增加强度" + tmp));
+                this.setMessage(Text.literal("A超限倍率 " + tmp));
             }
         };
 
-        BDeathStrength = new SliderWidget(width / 2 - 105, 2 * (ButtonHeight + ButtonDistance) + 20, 100, ButtonHeight, Text.literal("B死亡增加强度" + strengthConfig.getBDeathStrength()), (double) strengthConfig.getBDeathStrength() / 200) {
+        BDeathStrength = new SliderWidget(width / 2 + 105, row1, 100, ButtonHeight, Text.literal("B超限倍率 " + strengthConfig.getBDeathStrength()), (double) strengthConfig.getBDeathStrength() / 200) {
             @Override
-            protected void updateMessage() {
-            }
-
+            protected void updateMessage() {}
             @Override
             protected void applyValue() {
                 int tmp = (int) (this.value * 200);
                 strengthConfig.setBDeathStrength(tmp);
-                this.setMessage(Text.literal("B死亡增加强度" + tmp));
+                this.setMessage(Text.literal("B超限倍率 " + tmp));
             }
         };
 
-        DeathStrength = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 - 215, 2 * (ButtonHeight + ButtonDistance) + 20, 10, ButtonHeight).tooltip(Tooltip.of(Text.literal("死亡时增加的强度\n计算完受伤强度后叠加\n和受伤强度同时作用\n死亡时将会发送\n死亡时收到的伤害x每伤害强度+死亡增加强度"))).build();
+        DeathStrength = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 + 205, row1, 10, ButtonHeight)
+                .tooltip(Tooltip.of(Text.literal("【超限放大倍率】\n噪声超过200分贝时（例如极近距离大爆炸），\n超出的分贝数将乘以该倍率附加到基础强度上。"))).build();
 
-        ADeathDelay = new SliderWidget(width / 2 + 5, 2 * (ButtonHeight + ButtonDistance) + 20, 100, ButtonHeight, Text.literal("A死亡时强度下降等待" + strengthConfig.getADeathDelay() * 50 + "ms"), (double) strengthConfig.getADeathDelay() / 120) {
+
+        // ================= 第二行 左侧：电击波形维持时间 (原 DelayTime) =================
+        ADelayTime = new SliderWidget(width / 2 - 205, row2, 100, ButtonHeight, Text.literal("A峰值维持 " + strengthConfig.getADelayTime() * 50 + "ms"), (double) strengthConfig.getADelayTime() / 120) {
             @Override
-            protected void updateMessage() {
-            }
-
+            protected void updateMessage() {}
             @Override
             protected void applyValue() {
                 int tmp = (int) (this.value * 120);
-                this.setMessage(Text.literal("A下降等待" + tmp * 50 + "ms"));
-                strengthConfig.setADeathDelay(tmp);
+                this.setMessage(Text.literal("A峰值维持 " + tmp * 50 + "ms"));
+                strengthConfig.setADelayTime(tmp);
             }
         };
 
-        BDeathDelay = new SliderWidget(width / 2 + 105, 2 * (ButtonHeight + ButtonDistance) + 20, 100, ButtonHeight, Text.literal("B死亡时强度下降等待" + strengthConfig.getBDeathDelay() * 50 + "ms"), (double) strengthConfig.getBDeathDelay() / 120) {
+        BDelayTime = new SliderWidget(width / 2 - 105, row2, 100, ButtonHeight, Text.literal("B峰值维持 " + strengthConfig.getBDelayTime() * 50 + "ms"), (double) strengthConfig.getBDelayTime() / 120) {
             @Override
-            protected void updateMessage() {
-            }
-
+            protected void updateMessage() {}
             @Override
             protected void applyValue() {
                 int tmp = (int) (this.value * 120);
-                this.setMessage(Text.literal("B下降等待" + tmp * 50 + "ms"));
-                strengthConfig.setBDeathDelay(tmp);
+                this.setMessage(Text.literal("B峰值维持 " + tmp * 50 + "ms"));
+                strengthConfig.setBDelayTime(tmp);
             }
         };
 
-        DeathDelay = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 + 205, 2 * (ButtonHeight + ButtonDistance) + 20, 10, ButtonHeight).tooltip(Tooltip.of(Text.literal("同强度下降等待\n此值在死亡时生效\n非叠加,是覆盖"))).build();
+        DelayTime = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 - 215, row2, 10, ButtonHeight)
+                .tooltip(Tooltip.of(Text.literal("【电击峰值维持时间】\n触发惩罚后，最高电击强度将会持续的时间，\n倒计时结束后强度才会开始衰减。"))).build();
 
-        AMin = new SliderWidget(width / 2 - 205, 3 * (ButtonHeight + ButtonDistance) + 20, 100, ButtonHeight, Text.literal("A最低强度" + strengthConfig.getAMin()), (double) strengthConfig.getAMin() / 200) {
+
+        // ================= 第二行 右侧：波形衰减间隔 (原 DownTime) =================
+        ADownTime = new SliderWidget(width / 2 + 5, row2, 100, ButtonHeight, Text.literal("A衰减间隔 " + strengthConfig.getADownTime() * 50 + "ms"), (double) strengthConfig.getADownTime() / 120) {
             @Override
-            protected void updateMessage() {
-
+            protected void updateMessage() {}
+            @Override
+            protected void applyValue() {
+                int tmp = (int) (this.value * 120);
+                if (tmp == 0) tmp = 1;
+                this.setMessage(Text.literal("A衰减间隔 " + tmp * 50 + "ms"));
+                strengthConfig.setADownTime(tmp);
             }
+        };
 
+        BDownTime = new SliderWidget(width / 2 + 105, row2, 100, ButtonHeight, Text.literal("B衰减间隔 " + strengthConfig.getBDownTime() * 50 + "ms"), (double) strengthConfig.getBDownTime() / 120) {
+            @Override
+            protected void updateMessage() {}
+            @Override
+            protected void applyValue() {
+                int tmp = (int) (this.value * 120);
+                if (tmp == 0) tmp = 1;
+                this.setMessage(Text.literal("B衰减间隔 " + tmp * 50 + "ms"));
+                strengthConfig.setBDownTime(tmp);
+            }
+        };
+
+        DownTime = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 + 205, row2, 10, ButtonHeight)
+                .tooltip(Tooltip.of(Text.literal("【波形衰减间隔】\n峰值维持结束后，每隔多久降低一次电击强度。"))).build();
+
+
+        // ================= 第三行 左侧：每次衰减数值 (原 DownValue) =================
+        ADownValue = new SliderWidget(width / 2 - 205, row3, 100, ButtonHeight, Text.literal("A单次衰减 " + strengthConfig.getADownValue()), (double) strengthConfig.getADownValue() / 20) {
+            @Override
+            protected void updateMessage() {}
+            @Override
+            protected void applyValue() {
+                int tmp = (int) (this.value * 20);
+                this.setMessage(Text.literal("A单次衰减 " + tmp));
+                strengthConfig.setADownValue(tmp);
+            }
+        };
+
+        BDownValue = new SliderWidget(width / 2 - 105, row3, 100, ButtonHeight, Text.literal("B单次衰减 " + strengthConfig.getBDownValue()), (double) strengthConfig.getBDownValue() / 20) {
+            @Override
+            protected void updateMessage() {}
+            @Override
+            protected void applyValue() {
+                int tmp = (int) (this.value * 20);
+                this.setMessage(Text.literal("B单次衰减 " + tmp));
+                strengthConfig.setBDownValue(tmp);
+            }
+        };
+
+        DownValue = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 - 215, row3, 10, ButtonHeight)
+                .tooltip(Tooltip.of(Text.literal("【单次衰减数值】\n每次触发衰减时，下降的电击强度数值。"))).build();
+
+
+        // ================= 第三行 右侧：衰减下限保护 (原 Min) =================
+        AMin = new SliderWidget(width / 2 + 5, row3, 100, ButtonHeight, Text.literal("A衰减下限 " + strengthConfig.getAMin()), (double) strengthConfig.getAMin() / 200) {
+            @Override
+            protected void updateMessage() {}
             @Override
             protected void applyValue() {
                 int tmp = (int) (value * 200);
-                setMessage(Text.literal("A最低强度" + tmp));
+                setMessage(Text.literal("A衰减下限 " + tmp));
                 strengthConfig.setAMin(tmp);
             }
         };
 
-        BMin = new SliderWidget(width / 2 - 105, 3 * (ButtonHeight + ButtonDistance) + 20, 100, ButtonHeight, Text.literal("B最低强度" + strengthConfig.getBMin()), (double) strengthConfig.getBMin() / 200) {
+        BMin = new SliderWidget(width / 2 + 105, row3, 100, ButtonHeight, Text.literal("B衰减下限 " + strengthConfig.getBMin()), (double) strengthConfig.getBMin() / 200) {
             @Override
-            protected void updateMessage() {
-
-            }
-
+            protected void updateMessage() {}
             @Override
             protected void applyValue() {
                 int tmp = (int) (value * 200);
-                setMessage(Text.literal("B最低强度" + tmp));
+                setMessage(Text.literal("B衰减下限 " + tmp));
                 strengthConfig.setBMin(tmp);
             }
         };
 
-        Min = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 - 215, 3 * (ButtonHeight + ButtonDistance) + 20, 10, ButtonHeight).tooltip(Tooltip.of(Text.literal("通道最低强度\n强度下降时将不会低于此值\n此值实际受血量比例影响\n例如损失10%血量最低强度就为此值x10%\n损失50%血量最低强度就为此值x50%"))).build();
+        Min = ButtonWidget.builder(Text.literal("?"), button -> {}).dimensions(width / 2 + 205, row3, 10, ButtonHeight)
+                .tooltip(Tooltip.of(Text.literal("【波形衰减下限】\n波形不断衰减时，将不会低于此数值，直至本次电击指令结束。"))).build();
 
-
-
+        // 统一添加到屏幕组件列表
         addDrawableChild(ADamageStrength);
         addDrawableChild(BDamageStrength);
         addDrawable(DamageStrength);
@@ -266,13 +226,8 @@ public class StrengthConfigScreen extends Screen {
         addDrawableChild(ADeathStrength);
         addDrawableChild(BDeathStrength);
         addDrawable(DeathStrength);
-        addDrawableChild(ADeathDelay);
-        addDrawableChild(BDeathDelay);
-        addDrawable(DeathDelay);
         addDrawableChild(AMin);
         addDrawableChild(BMin);
         addDrawable(Min);
     }
-
-
 }
