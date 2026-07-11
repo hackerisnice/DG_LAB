@@ -24,7 +24,7 @@ public class NoiseManager {
 
     public static void tick() {
         ticksSinceLastNoise++;
-        if (ticksSinceLastNoise > 0 && currentNoise > 0) {
+        if (ticksSinceLastNoise > 100 && currentNoise > 0) {
             currentNoise = Math.max(0, currentNoise - 0.5f); 
         }
     }
