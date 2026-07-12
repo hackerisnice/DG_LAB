@@ -80,56 +80,52 @@ public class Dg_labClient implements ClientModInitializer {
 
 
 
-    //屏幕强度显示
+    //屏幕显示
     private void onHudRender(DrawContext drawContext, RenderTickCounter tickDelta) {
         MinecraftClient client = MinecraftClient.getInstance();
 
-        if (client.player != null && client.world != null && (modConfig.getRenderingPositionX() < client.getWindow().getScaledWidth() || modConfig.getRenderingPositionY() < client.getWindow().getScaledHeight())) {
-            // 假设强度数值是一个整数
-//            int strengthValue = getStrengthValue(client.player);
+        if (client.player != null && client.world != null) {
+            
+            // ================= 1. 左上角常驻强度文字 =================
+            if (modConfig.getRenderingPositionX() < client.getWindow().getScaledWidth() || modConfig.getRenderingPositionY() < client.getWindow().getScaledHeight()) {
+                int x = modConfig.getRenderingPositionX();
+                int y = modConfig.getRenderingPositionY();
 
-            // 计算图标和文本的位置
-            int x = modConfig.getRenderingPositionX();
-            int y = modConfig.getRenderingPositionY();
-
-
-            // 创建并渲染 OrderedText
-
-            if(webSocketServer.getConnected()) {
                 Text strengthText;
                 Text strengthText1;
                 String A = "A", B = "B";
                 if(twoPlayerMode){
-                    A = MinecraftClient.getInstance().getSession().getUsername() + ":";
+                    A = client.getSession().getUsername() + ":";
                     B = secondPlayer + ":";
                 }
                 else {
                     A = "A:";
                     B = "B:";
                 }
+                
                 if(modConfig.isRenderingMax()) {
                     strengthText = Text.literal(A + webSocketServer.getStrength().getAStrength() + ",Max:" + webSocketServer.getStrength().getAMaxStrength());
-
                     strengthText1 = Text.literal(B + webSocketServer.getStrength().getBStrength() + ",Max:" + webSocketServer.getStrength().getBMaxStrength());
-
                 }
                 else {
                     strengthText = Text.literal(A + webSocketServer.getStrength().getAStrength());
-
                     strengthText1 = Text.literal(B + webSocketServer.getStrength().getBStrength());
                 }
+
+                // 常驻渲染 A 和 B 的文字
                 OrderedText orderedText = strengthText.asOrderedText();
                 OrderedText orderedText1 = strengthText1.asOrderedText();
                 drawContext.drawTextWithShadow(client.textRenderer, orderedText, x, y, 0xFFFFFF);
                 drawContext.drawTextWithShadow(client.textRenderer, orderedText1, x, y + 9, 0xFFFFFF);
+
+                // 如果没有连接，在第三行额外显示“未连接”
+                if(!webSocketServer.getConnected()) {
+                    Text disconnectText = Text.literal("未连接");
+                    drawContext.drawTextWithShadow(client.textRenderer, disconnectText.asOrderedText(), x, y + 18, 0xFF0000); 
+                }
             }
-            else {
-                Text strengthText = Text.literal("未连接");
-                OrderedText orderedText = strengthText.asOrderedText();
-                drawContext.drawTextWithShadow(client.textRenderer, orderedText, x, y, 0xFF0000);
-            }
-        }
-        if (client.player != null && client.world != null) {
+
+            // ================= 2. 右上角噪声条 =================
             int screenWidth = client.getWindow().getScaledWidth();
             int barWidth = 100;
             int barHeight = 10;
@@ -152,6 +148,5 @@ public class Dg_labClient implements ClientModInitializer {
             drawContext.drawTextWithShadow(client.textRenderer, text, xPos, yPos + barHeight + 2, 0xFFFFFF);
         }
     }
-
 
 }
